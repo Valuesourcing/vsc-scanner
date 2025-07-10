@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="th">
-<head>
+<html>
+  <head>
+    <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VSC Business Card Scanner AI</title>
@@ -9,73 +10,344 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
-        .loader { border: 5px solid #e5e7eb; border-top: 5px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .table-cell { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
-        .table-cell-address { white-space: normal; min-width: 250px; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+        }
+        .loader {
+            border: 5px solid #e5e7eb;
+            border-top: 5px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .table-cell {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .table-cell-address {
+             white-space: normal;
+             min-width: 250px;
+        }
     </style>
-</head>
-<body class="min-h-screen p-4 md:p-6">
+  </head>
+  <body>
     <div class="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg">
         <div class="p-6 md:p-8 border-b border-gray-200">
             <h1 class="text-3xl font-bold text-gray-900">VSC Business Card Scanner AI</h1>
             <p class="text-gray-500 mt-2">อัปโหลดรูปนามบัตร > AI ช่วยดึงและแยกประเภทข้อมูล > บันทึกลง Google Sheet</p>
         </div>
+        
         <div class="p-6 md:p-8">
+            <!-- Upload Area -->
             <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 transition-colors">
-                <input type="file" id="image-input" class="hidden" accept="image/*" capture="environment">
-                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-blue-600">ถ่ายรูป หรือ คลิกเพื่ออัปโหลด</span></p>
+                <input type="file" id="image-input" class="hidden" accept="image/*">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">
+                    <span class="font-semibold text-blue-600">คลิกเพื่ออัปโหลด</span> หรือลากไฟล์มาวาง
+                </p>
                 <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF (ขนาดไม่เกิน 10MB)</p>
             </div>
+
+            <!-- Main Content: Preview and Scan -->
             <div id="main-content" class="hidden mt-6">
                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1">
                         <h2 class="text-xl font-bold text-gray-800 mb-3">ภาพตัวอย่าง</h2>
-                        <div class="relative"><img id="image-preview" src="#" alt="ตัวอย่างนามบัตร" class="w-full h-auto rounded-lg shadow-md"></div>
-                         <button id="scan-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center disabled:bg-gray-400"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg><span id="scan-btn-text">สแกนและเพิ่มลงตาราง</span></button>
-                        <button id="change-image-btn" class="mt-2 w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-all flex items-center justify-center">เลือกรูปอื่น</button>
+                        <div class="relative">
+                            <img id="image-preview" src="#" alt="ตัวอย่างนามบัตร" class="w-full h-auto rounded-lg shadow-md">
+                        </div>
+                         <button id="scan-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center disabled:bg-gray-400">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <span id="scan-btn-text">สแกนและเพิ่มลงตาราง</span>
+                        </button>
+                        <button id="change-image-btn" class="mt-2 w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-all flex items-center justify-center">
+                            เลือกรูปอื่น
+                        </button>
                     </div>
                     <div class="lg:col-span-2 flex flex-col items-center justify-center text-center p-8">
                         <div id="loader" class="hidden loader"></div>
                         <p id="loader-text" class="hidden text-gray-600 mt-4">AI กำลังวิเคราะห์ข้อมูล, กรุณารอสักครู่...</p>
-                        <div id="error-message" class="hidden p-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert"><span class="font-medium">เกิดข้อผิดพลาด!</span> <span id="error-text"></span></div>
+                        <div id="error-message" class="hidden p-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                            <span class="font-medium">เกิดข้อผิดพลาด!</span> <span id="error-text"></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Results Table and Save Section -->
     <div id="results-section" class="hidden mt-8 w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">ข้อมูลที่สแกนแล้ว (รอการบันทึก)</h2>
         <div class="overflow-x-auto border border-gray-200 rounded-lg">
             <table class="w-full text-sm text-left text-gray-600">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
-                        <th class="table-cell">ชื่อ-นามสกุล</th><th class="table-cell">ตำแหน่ง</th><th class="table-cell">บริษัท</th><th class="table-cell">มือถือ</th><th class="table-cell">โทรศัพท์</th><th class="table-cell">แฟกซ์</th><th class="table-cell">อีเมล</th><th class="table-cell">เว็บไซต์</th><th class="table-cell table-cell-address">ที่อยู่</th><th class="table-cell">ลบ</th>
+                        <th class="table-cell">ชื่อ-นามสกุล</th>
+                        <th class="table-cell">ตำแหน่ง</th>
+                        <th class="table-cell">บริษัท</th>
+                        <th class="table-cell">มือถือ</th>
+                        <th class="table-cell">โทรศัพท์</th>
+                        <th class="table-cell">แฟกซ์</th>
+                        <th class="table-cell">อีเมล</th>
+                        <th class="table-cell">เว็บไซต์</th>
+                        <th class="table-cell table-cell-address">ที่อยู่</th>
+                        <th class="table-cell">ลบ</th>
                     </tr>
                 </thead>
-                <tbody id="results-table-body"></tbody>
+                <tbody id="results-table-body">
+                   <!-- Rows will be added here -->
+                </tbody>
             </table>
-             <div id="empty-table-message" class="text-center py-8 text-gray-500">ยังไม่มีข้อมูล... เริ่มโดยการสแกนนามบัตร</div>
+             <div id="empty-table-message" class="text-center py-8 text-gray-500">
+                ยังไม่มีข้อมูล... เริ่มโดยการสแกนนามบัตร
+            </div>
         </div>
+
         <div class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
             <h3 class="text-lg font-semibold text-gray-800">ขั้นตอนสุดท้าย: บันทึกข้อมูล</h3>
-            <div class="mt-2">
-                <label for="apps-script-url" class="block mb-1 text-sm font-medium text-gray-700">วาง URL ของเว็บแอป (จาก Google Apps Script)</label>
-                <input type="url" id="apps-script-url" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="https://script.google.com/macros/s/...">
-            </div>
             <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                 <button id="save-to-sheet-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center disabled:bg-gray-400"><span id="save-btn-text">บันทึกข้อมูลทั้งหมดลง Sheet</span></button>
-                <button id="clear-all-btn" class="w-full sm:w-auto bg-red-500 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center disabled:bg-gray-400">ล้างข้อมูลทั้งหมด</button>
+                 <button id="save-to-sheet-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center disabled:bg-gray-400">
+                    <span id="save-btn-text">บันทึกข้อมูลทั้งหมดลง Sheet</span>
+                </button>
+                <button id="clear-all-btn" class="w-full sm:w-auto bg-red-500 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center disabled:bg-gray-400">
+                    ล้างข้อมูลทั้งหมด
+                </button>
             </div>
             <div id="save-status" class="mt-3 text-sm"></div>
         </div>
     </div>
+
     <script>
-      document.addEventListener('DOMContentLoaded',function(){const e=document.getElementById("upload-container"),t=document.getElementById("image-input"),n=document.getElementById("main-content"),o=document.getElementById("image-preview"),a=document.getElementById("scan-btn"),d=document.getElementById("change-image-btn"),i=document.getElementById("loader"),l=document.getElementById("loader-text"),r=document.getElementById("error-message"),s=document.getElementById("error-text"),c=document.getElementById("results-section"),m=document.getElementById("results-table-body"),u=document.getElementById("empty-table-message"),p=document.getElementById("apps-script-url"),h=document.getElementById("save-to-sheet-btn"),g=document.getElementById("clear-all-btn"),f=document.getElementById("save-status");let y=null,b=[];function v(){const e=t.files[0];e&&(new FileReader).onload=e=>{o.src=e.target.result,y=e.target.result.split(",")[1],document.getElementById("upload-container").classList.add("hidden"),n.classList.remove("hidden"),n.classList.add("fade-in"),a.disabled=!1,r.classList.add("hidden")},reader.readAsDataURL(e))}async function k(){if(!y)return void w("กรุณาอัปโหลดรูปภาพก่อน");S(!0,"scan");try{const e={contents:[{parts:[{text:"จากรูปภาพนามบัตรนี้ กรุณาดึงข้อมูลต่อไปนี้ออกมาอย่างละเอียดและแม่นยำที่สุดในรูปแบบ JSON:\n- name (ชื่อ-นามสกุล)\n- title (ตำแหน่ง)\n- company (ชื่อบริษัท)\n- mobile (เบอร์มือถือทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)\n- phone (เบอร์โทรศัพท์ของออฟฟิศทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)\n- fax (เบอร์แฟกซ์ทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)\n- email (อีเมลทั้งหมด, ในรูปแบบ array of strings)\n- website (เว็บไซต์ทั้งหมด, ในรูปแบบ array of strings)\n- address (ที่อยู่ทั้งหมดอย่างครบถ้วน)\nแยกประเภทเบอร์โทรศัพท์ให้ชัดเจนระหว่าง mobile, phone, และ fax. หากข้อมูลส่วนไหนไม่มี ให้ส่งค่าเป็น null หรือ array ว่าง."},{inlineData:{mimeType:"image/jpeg",data:y}}]}],generationConfig:{responseMimeType:"application/json"}},t=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)});if(!t.ok)throw new Error(`API Error: ${t.statusText}`);const o=await t.json();if(o.candidates?.[0]?.content?.parts?.[0]){const e=JSON.parse(o.candidates[0].content.parts[0].text);e.id=Date.now(),b.push(e),x(),n.classList.add("hidden"),document.getElementById("upload-container").classList.remove("hidden"),imageInput.value=""}else throw new Error("ไม่สามารถดึงข้อมูลจากรูปภาพได้ หรือมีข้อมูลไม่เหมาะสม")}catch(e){w(e.message)}finally{S(!1,"scan")}}function x(){if(m.innerHTML="",b.length>0){c.classList.remove("hidden"),u.style.display="none",h.disabled=!1,g.disabled=!1,b.forEach(e=>{const t=document.createElement("tr");t.className="hover:bg-gray-50 text-sm",t.innerHTML=`\n                        <td class="table-cell">${e.name||"-"}</td>\n                        <td class="table-cell">${e.title||"-"}</td>\n                        <td class="table-cell">${e.company||"-"}</td>\n                        <td class="table-cell">${(Array.isArray(e.mobile)?e.mobile.join(", "):e.mobile)||-""}</td>\n                        <td class="table-cell">${(Array.isArray(e.phone)?e.phone.join(", "):e.phone)||-""}</td>\n                        <td class="table-cell">${(Array.isArray(e.fax)?e.fax.join(", "):e.fax)||-""}</td>\n                        <td class="table-cell">${(Array.isArray(e.email)?e.email.join(", "):e.email)||-""}</td>\n                        <td class="table-cell">${(Array.isArray(e.website)?e.website.join(", "):e.website)||-""}</td>\n                        <td class="table-cell table-cell-address">${e.address||"-"}</td>\n                        <td class="table-cell">\n                            <button class="text-red-500 hover:text-red-700" data-id="${e.id}" title="ลบรายการนี้">\n                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>\n                            </button>\n                        </td>\n                    `,t.querySelector("button").addEventListener("click",e=>{b=b.filter(t=>t.id!==Number(e.currentTarget.dataset.id)),x()}),m.appendChild(t)})}else c.classList.add("hidden"),u.style.display="block",h.disabled=!0,g.disabled=!0}function E(){const e=p.value.trim();if(!e)return void L("กรุณาใส่ URL ของเว็บแอปก่อน","error");if(0===b.length)return void L("ไม่มีข้อมูลให้บันทึก","error");try{const t=JSON.stringify(b),n=encodeURIComponent(t);if(n.length>2e3)return void L("ข้อมูลมีขนาดใหญ่เกินไป กรุณาลดจำนวนรายการแล้วลองอีกครั้ง","error");const o=`${e}?data=${n}`;window.open(o,"_blank"),L("กำลังเปิดหน้าต่างใหม่เพื่อบันทึก... กรุณาตรวจสอบผลลัพธ์ในแท็บใหม่","success"),setTimeout(()=>{b=[],x()},1e3)}catch(e){L(`เกิดข้อผิดพลาดในการเตรียมข้อมูล: ${e.message}`,"error")}}function C(){b=[],x(),L("ล้างข้อมูลทั้งหมดแล้ว","success")}function S(e,t){const n=document.getElementById("save-btn-text");"scan"===t?(a.disabled=e,i.classList.toggle("hidden",!e),l.classList.toggle("hidden",!e),e||r.classList.add("hidden")):"save"===t&&(h.disabled=e,n.textContent=e?"กำลังบันทึก...":"บันทึกข้อมูลทั้งหมดลง Sheet")}function w(e){s.textContent=e,r.classList.remove("hidden")}function L(e,t){f.textContent=e,f.className="mt-3 text-sm","success"===t?f.classList.add("text-green-600"):"error"===t?f.classList.add("text-red-600"):f.classList.add("text-blue-600"),setTimeout(()=>{f.textContent=""},8e3)}e.addEventListener("click",()=>t.click()),d.addEventListener("click",()=>t.click()),t.addEventListener("change",v),a.addEventListener("click",k),h.addEventListener("click",E),g.addEventListener("click",C)});
+      // This script will run after the HTML body has been loaded.
+      document.addEventListener('DOMContentLoaded', function() {
+        // --- DOM Elements ---
+        const uploadContainer = document.getElementById('upload-container');
+        const imageInput = document.getElementById('image-input');
+        const mainContent = document.getElementById('main-content');
+        const imagePreview = document.getElementById('image-preview');
+        const scanBtn = document.getElementById('scan-btn');
+        const changeImageBtn = document.getElementById('change-image-btn');
+        const loader = document.getElementById('loader');
+        const loaderText = document.getElementById('loader-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resultsSection = document.getElementById('results-section');
+        const resultsTableBody = document.getElementById('results-table-body');
+        const emptyTableMessage = document.getElementById('empty-table-message');
+        const saveToSheetBtn = document.getElementById('save-to-sheet-btn');
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        const saveStatus = document.getElementById('save-status');
+
+        // --- State ---
+        let imageBase64Data = null;
+        let resultsList = [];
+
+        // --- Event Listeners ---
+        uploadContainer.addEventListener('click', () => imageInput.click());
+        changeImageBtn.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', handleImageUpload);
+        scanBtn.addEventListener('click', handleScan);
+        saveToSheetBtn.addEventListener('click', handleSaveToSheet);
+        clearAllBtn.addEventListener('click', handleClearAll);
+
+        // --- Functions ---
+
+        function handleImageUpload() {
+            const file = imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imageBase64Data = e.target.result.split(',')[1];
+                    uploadContainer.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    mainContent.classList.add('fade-in');
+                    scanBtn.disabled = false;
+                    errorMessage.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleScan() {
+            if (!imageBase64Data) {
+                showError('กรุณาอัปโหลดรูปภาพก่อน');
+                return;
+            }
+            setLoadingState(true, 'scan');
+
+            try {
+                const prompt = `จากรูปภาพนามบัตรนี้ กรุณาดึงข้อมูลต่อไปนี้ออกมาอย่างละเอียดและแม่นยำที่สุดในรูปแบบ JSON:
+- name (ชื่อ-นามสกุล)
+- title (ตำแหน่ง)
+- company (ชื่อบริษัท)
+- mobile (เบอร์มือถือทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)
+- phone (เบอร์โทรศัพท์ของออฟฟิศทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)
+- fax (เบอร์แฟกซ์ทั้งหมด, ถ้ามี, ในรูปแบบ array of strings)
+- email (อีเมลทั้งหมด, ในรูปแบบ array of strings)
+- website (เว็บไซต์ทั้งหมด, ในรูปแบบ array of strings)
+- address (ที่อยู่ทั้งหมดอย่างครบถ้วน)
+แยกประเภทเบอร์โทรศัพท์ให้ชัดเจนระหว่าง mobile, phone, และ fax. หากข้อมูลส่วนไหนไม่มี ให้ส่งค่าเป็น null หรือ array ว่าง.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: imageBase64Data } }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                };
+                
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                
+                const result = await response.json();
+
+                if (result.candidates?.[0]?.content?.parts?.[0]) {
+                    const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                    parsedData.id = Date.now();
+                    resultsList.push(parsedData);
+                    renderResultsTable();
+                    mainContent.classList.add('hidden');
+                    uploadContainer.classList.remove('hidden');
+                    imageInput.value = '';
+                } else {
+                    throw new Error('ไม่สามารถดึงข้อมูลจากรูปภาพได้ หรือมีข้อมูลไม่เหมาะสม');
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                setLoadingState(false, 'scan');
+            }
+        }
+
+        function renderResultsTable() {
+            resultsTableBody.innerHTML = '';
+            if (resultsList.length > 0) {
+                resultsSection.classList.remove('hidden');
+                emptyTableMessage.style.display = 'none';
+                saveToSheetBtn.disabled = false;
+                clearAllBtn.disabled = false;
+
+                resultsList.forEach(data => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-50 text-sm';
+                    tr.innerHTML = `
+                        <td class="table-cell">${data.name || '-'}</td>
+                        <td class="table-cell">${data.title || '-'}</td>
+                        <td class="table-cell">${data.company || '-'}</td>
+                        <td class="table-cell">${(Array.isArray(data.mobile) ? data.mobile.join(', ') : data.mobile) || '-'}</td>
+                        <td class="table-cell">${(Array.isArray(data.phone) ? data.phone.join(', ') : data.phone) || '-'}</td>
+                        <td class="table-cell">${(Array.isArray(data.fax) ? data.fax.join(', ') : data.fax) || '-'}</td>
+                        <td class="table-cell">${(Array.isArray(data.email) ? data.email.join(', ') : data.email) || '-'}</td>
+                        <td class="table-cell">${(Array.isArray(data.website) ? data.website.join(', ') : data.website) || '-'}</td>
+                        <td class="table-cell table-cell-address">${data.address || '-'}</td>
+                        <td class="table-cell">
+                            <button class="text-red-500 hover:text-red-700" data-id="${data.id}" title="ลบรายการนี้">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </td>
+                    `;
+                    tr.querySelector('button').addEventListener('click', (e) => {
+                        resultsList = resultsList.filter(item => item.id !== Number(e.currentTarget.dataset.id));
+                        renderResultsTable();
+                    });
+                    resultsTableBody.appendChild(tr);
+                });
+            } else {
+                resultsSection.classList.add('hidden');
+                emptyTableMessage.style.display = 'block';
+                saveToSheetBtn.disabled = true;
+                clearAllBtn.disabled = true;
+            }
+        }
+
+        function handleSaveToSheet() {
+            if (resultsList.length === 0) {
+                showSaveStatus('ไม่มีข้อมูลให้บันทึก', 'error');
+                return;
+            }
+            
+            setLoadingState(true, 'save');
+            showSaveStatus('กำลังบันทึกข้อมูล...', 'loading');
+
+            // **FIX**: Using google.script.run, the most reliable way to call server-side functions.
+            google.script.run
+                .withSuccessHandler(response => {
+                    // This function runs if the server-side function (saveData) completes successfully.
+                    setLoadingState(false, 'save');
+                    if (response.status === 'success') {
+                        showSaveStatus(response.message, 'success');
+                        resultsList = [];
+                        renderResultsTable();
+                    } else {
+                        // Handle errors reported by the Apps Script function itself
+                        showSaveStatus(response.message, 'error');
+                    }
+                })
+                .withFailureHandler(error => {
+                    // This function runs if there's a network error or the server function doesn't exist.
+                    setLoadingState(false, 'save');
+                    showSaveStatus(`ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: ${error.message}`, 'error');
+                })
+                .saveData(JSON.stringify(resultsList)); // Call the 'saveData' function in Code.gs
+        }
+
+        function handleClearAll() {
+            resultsList = [];
+            renderResultsTable();
+            showSaveStatus('ล้างข้อมูลทั้งหมดแล้ว', 'success');
+        }
+
+        function setLoadingState(isLoading, type) {
+            const saveBtnText = document.getElementById('save-btn-text');
+            if (type === 'scan') {
+                scanBtn.disabled = isLoading;
+                loader.classList.toggle('hidden', !isLoading);
+                loaderText.classList.toggle('hidden', !isLoading);
+                if (!isLoading) errorMessage.classList.add('hidden');
+            } else if (type === 'save') {
+                saveToSheetBtn.disabled = isLoading;
+                saveBtnText.textContent = isLoading ? 'กำลังบันทึก...' : 'บันทึกข้อมูลทั้งหมดลง Sheet';
+            }
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+        
+        function showSaveStatus(message, type) {
+            saveStatus.textContent = message;
+            saveStatus.className = 'mt-3 text-sm';
+            if (type === 'success') saveStatus.classList.add('text-green-600');
+            else if (type === 'error') saveStatus.classList.add('text-red-600');
+            else saveStatus.classList.add('text-blue-600');
+            
+            setTimeout(() => { saveStatus.textContent = ''; }, 8000);
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
